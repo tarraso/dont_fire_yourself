@@ -1,4 +1,4 @@
-var MOVEMENT_SPEED = 250;
+var MOVEMENT_SPEED = 200;
 var WIDTH  = 480;
 var HEIGHT = 270;
 var game = new Phaser.Game(WIDTH, HEIGHT, 
@@ -17,12 +17,12 @@ function preload() {
 }
 
 var player;
-var fire_emitter;
-var machine1 = null;
+var fireEmitter;
 var buttons = {};
 var map;
-var main_layer;
-var fire_layer
+var mainLayer;
+var fireLayer;
+
 
 function create(){
     game.physics.startSystem(Phaser.Physics.P2JS);
@@ -35,25 +35,27 @@ function create(){
 
     map = game.add.tilemap('level_1');
     map.addTilesetImage('tiles');
-    main_layer = map.createLayer('main');
-    main_layer.resizeWorld();
+    mainLayer = map.createLayer('main');
+    mainLayer.resizeWorld();
 
     map.setCollisionBetween(1, 10);
-    game.physics.p2.convertTilemap(map, main_layer);
+    game.physics.p2.convertTilemap(map, mainLayer);
+
+    fireLayer = map.create("firing_layer", map.width, map.height, 16, 16);
 
     player = game.add.sprite(game.world.centerX, game.world.centerY, 'hero');
     game.physics.p2.enable(player);
        
     game.camera.follow(player);
 
-    fire_emitter = game.add.emitter(0,0,1000);
-    fire_emitter.makeParticles('firebulb');
-    fire_emitter.x = 4;
-    fire_emitter.y = -8;
-    fire_emitter.lifespan = 500;
-    fire_emitter.maxParticleSpeed = new Phaser.Point(10,-50);
-    fire_emitter.minParticleSpeed = new Phaser.Point(-10,-50);
-    player.addChild(fire_emitter)
+    fireEmitter = game.add.emitter(0,0,1000);
+    fireEmitter.makeParticles('firebulb');
+    fireEmitter.x = 4;
+    fireEmitter.y = -8;
+    fireEmitter.lifespan = 500;
+    fireEmitter.maxParticleSpeed = new Phaser.Point(10,-50);
+    fireEmitter.minParticleSpeed = new Phaser.Point(-10,-50);
+    player.addChild(fireEmitter)
 }
 
 function update(){
@@ -89,12 +91,51 @@ function update(){
     speed = 350;
     player.body.rotateLeft(speed * deltaMouseRad);
 
-    if(game.input.mousePointer.isDown){
-        fire_emitter.emitParticle();
+    if(game.input.mousePointer.isDown && Math.random()*10000>1){
+        fireEmitter.emitParticle();
+        var firingPosigion  = getFiringPosition();
+        map.putTile(31+Math.floor(10*Math.random()), fireLayer.getTileX(firingPosigion.x), fireLayer.getTileX(firingPosigion.y), fireLayer);
+    }
+
+    for(var i=0; i< map.width; i++){
+        for(var j=0; j< map.height; j++){
+            var tile = map.getTile(i, j, fireLayer);
+            if(tile && tile.index>30 && tile.index<41){
+                var idx = tile.index-30;
+                if(Math.random()*30<1){
+
+                }
+                if(Math.random()*10000 < 1){
+                    map.removeTile(i, j, fireLayer);
+                    continue;
+                };
+                if(Math.random()*1000 < 1){
+                    map.putTile(41+Math.floor(10*Math.random()), i, j, fireLayer);
+                }
+            }
+            if(tile && tile.index>40 && tile.index< 51){
+                if(Math.random()*5000 > 1){
+                    map.putTile(51+Math.floor(10*Math.random()), i, j, fireLayer);
+                }
+            }
+        }
     }
 
 }
 
+function getFiringPosition(){
+    return {
+        x: player.body.x - Math.cos(player.angle/180*Math.PI+Math.PI/2)*20 + Math.sin(player.angle/180*Math.PI+Math.PI/2)*3,
+        y: player.body.y - Math.sin(player.angle/180*Math.PI+Math.PI/2)*20 + Math.cos(player.angle/180*Math.PI+Math.PI/2)*3,
+    }
+}
 function render(){
+    var circle = new Phaser.Circle(
+        player.body.x - Math.cos(player.angle/180*Math.PI+Math.PI/2)*20 + Math.sin(player.angle/180*Math.PI+Math.PI/2)*3,
+        player.body.y - Math.sin(player.angle/180*Math.PI+Math.PI/2)*20 + Math.cos(player.angle/180*Math.PI+Math.PI/2)*3,
+        3);
+    game.debug.geom( circle, 'rgba(255,255,0,1)' ) ;
+
+
 
 }

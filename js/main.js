@@ -1,12 +1,19 @@
 var MOVEMENT_SPEED = 200;
-var WIDTH  = 480;
-var HEIGHT = 270;
+var WIDTH  = 640;
+var HEIGHT = 360;
+;
 var game = new Phaser.Game(WIDTH, HEIGHT, 
         Phaser.AUTO, 'gamesatate', 
-        { preload: preload, create: create, update: update, render: render },
+        { init: init, preload: preload, create: create, update: update, render: render },
         false,
         false);
 
+function init(){
+    this.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    //this.scale.pageAlignHorizontally = true;
+    this.scale.pageAlignVertically = true;
+    this.scale.setScreenSize( true );
+}
 
 function preload() {
     game.load.image('hero', 'assets/sprites/hero.png');
@@ -37,6 +44,11 @@ var flyingObstacles;
 var levelNumber = 0;
 
 function create(){
+
+    this.scale.pageAlignHorizontally = true;
+    this.scale.pageAlignVertically = true;
+
+
     game.physics.startSystem(Phaser.Physics.P2JS);
     game.physics.p2.setImpactEvents(true);
 
@@ -77,9 +89,6 @@ function create(){
     
     flyingObstacles = game.add.group();
 
-    game.stage.scaleMode = Phaser.StageScaleMode.SHOW_ALL; //resize your window to see the stage resize too
-    game.stage.scale.setShowAll();
-    game.stage.scale.refresh();
 }
 
 function update(){
@@ -115,14 +124,16 @@ function update(){
     speed = 350;
     player.body.rotateLeft(speed * deltaMouseRad);
 
-    if(game.input.mousePointer.isDown && Math.random()*20<1){
+    if(game.input.mousePointer.isDown){
         fireEmitter.emitParticle();
-        var firingPosigion  = getFiringPosition();
-        var x = fireLayer.getTileX(firingPosigion.x);
-        var y = fireLayer.getTileX(firingPosigion.y);
-        var mainTile =  map.getTile(x, y, mainLayer);
-        if(mainTile && mainTile.index>10){
-            putFire(x,y);
+        if(Math.random()*20<1){
+            var firingPosigion  = getFiringPosition();
+            var x = fireLayer.getTileX(firingPosigion.x);
+            var y = fireLayer.getTileX(firingPosigion.y);
+            var mainTile =  map.getTile(x, y, mainLayer);
+            if(mainTile && mainTile.index>10){
+                putFire(x,y);
+            }
         }
     }
 
@@ -144,10 +155,10 @@ function update(){
                     var mainTile = map.getTile(x, y, mainLayer);
                     if(mainTile){
                         var mainIdx = mainTile.index;
-                        if(mainIdx>20 && mainIdx<31 && Math.random()*500<1){
+                        if(mainIdx>10 && mainIdx<31 && Math.random()*200<1){
                              putFire(x,y);
                         }
-                        if(mainIdx>30 && mainIdx<41 && Math.random()*100<1){
+                        if(mainIdx>30 && mainIdx<41 && Math.random()*30<1){
                             putFire(x,y);
                         }
                     }
@@ -198,7 +209,7 @@ function update(){
             }
         });
 
-    if(getFiringCount()> map.width*map.height / 3){
+    if(getFiringCount()> map.width*map.height / 1.50){
         loadNextLevel();
     }
 }

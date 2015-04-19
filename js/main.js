@@ -38,11 +38,10 @@ function create(){
     mainLayer = map.createLayer('main');
     mainLayer.resizeWorld();
 
-    map.setCollisionBetween(1, 10);
+    map.setCollisionBetween(1, 20);
     game.physics.p2.convertTilemap(map, mainLayer);
 
-    fireLayer = map.create("firing_layer", map.width, map.height, 16, 16);
-
+    fireLayer = map.createBlankLayer("fire_layer", map.width, map.height, 16, 16);
     player = game.add.sprite(game.world.centerX, game.world.centerY, 'hero');
     game.physics.p2.enable(player);
        
@@ -91,26 +90,42 @@ function update(){
     speed = 350;
     player.body.rotateLeft(speed * deltaMouseRad);
 
-    if(game.input.mousePointer.isDown && Math.random()*10000>1){
+    if(game.input.mousePointer.isDown && Math.random()*20<1){
         fireEmitter.emitParticle();
         var firingPosigion  = getFiringPosition();
-        map.putTile(31+Math.floor(10*Math.random()), fireLayer.getTileX(firingPosigion.x), fireLayer.getTileX(firingPosigion.y), fireLayer);
+        var x = fireLayer.getTileX(firingPosigion.x);
+        var y = fireLayer.getTileX(firingPosigion.y);
+        var mainTile =  map.getTile(x, y, mainLayer);
+        if(mainTile && mainTile.index>10){
+            putFire(x,y);
+        }
     }
 
     for(var i=0; i< map.width; i++){
         for(var j=0; j< map.height; j++){
             var tile = map.getTile(i, j, fireLayer);
-            if(tile && tile.index>30 && tile.index<41){
-                var idx = tile.index-30;
-                if(Math.random()*30<1){
-
-                }
+            if(tile && tile.index>70 && tile.index<=100){
+                tile.flipped = !tile.flipped;
                 if(Math.random()*10000 < 1){
                     map.removeTile(i, j, fireLayer);
                     continue;
                 };
                 if(Math.random()*1000 < 1){
-                    map.putTile(41+Math.floor(10*Math.random()), i, j, fireLayer);
+                    map.putTile(81+Math.floor(10*Math.random()), i, j, fireLayer);
+                }
+                var x = i - 1 + Math.floor(Math.random()*3);
+                var y = j - 1 + Math.floor(Math.random()*3);
+                if((x!=i || y!=j) && !map.getTile(x,y, fireLayer)){
+                    var mainTile = map.getTile(x, y, mainLayer);
+                    if(mainTile){
+                        var mainIdx = mainTile.index;
+                        if(mainIdx>20 && mainIdx<31 && Math.random()*500<1){
+                             putFire(x,y);
+                        }
+                        if(mainIdx>30 && mainIdx<41 && Math.random()*100<1){
+                            putFire(x,y);
+                        }
+                    }
                 }
             }
             if(tile && tile.index>40 && tile.index< 51){
@@ -121,6 +136,10 @@ function update(){
         }
     }
 
+}
+
+function putFire(x,y){
+    map.putTile(71+Math.floor(10*Math.random()), x, y, fireLayer);
 }
 
 function getFiringPosition(){
@@ -135,7 +154,5 @@ function render(){
         player.body.y - Math.sin(player.angle/180*Math.PI+Math.PI/2)*20 + Math.cos(player.angle/180*Math.PI+Math.PI/2)*3,
         3);
     game.debug.geom( circle, 'rgba(255,255,0,1)' ) ;
-
-
 
 }
